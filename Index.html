@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HTML共有ツール</title>
-    <!-- Tailwind CSS (デザイン用) -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4">
@@ -13,23 +12,20 @@
         <div class="text-center py-10 text-gray-500">読み込み中...</div>
     </div>
 
-    <!-- Firebase SDK (モジュール版 v10) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // ==========================================
-        // ▼ ここにあなたのFirebase設定を貼り付けてください
+        // ▼ Firebase設定をここに貼り付けてください
         // ==========================================
         const firebaseConfig = {
-            apiKey: "AIzaSyD6OJINU59GDt3iXM48runxWBR-kHvz7MI", authDomain: "video-tsuwa.firebaseapp.com", databaseURL: "https://video-tsuwa-default-rtdb.firebaseio.com", projectId: "video-tsuwa", storageBucket: "video-tsuwa.firebasestorage.app", messagingSenderId: "595981788032", appId: "1:595981788032:web:319e20bd30142af82e5765"
+          apiKey: "AIzaSyD6OJINU59GDt3iXM48runxWBR-kHvz7MI", authDomain: "video-tsuwa.firebaseapp.com", databaseURL: "https://video-tsuwa-default-rtdb.firebaseio.com", projectId: "video-tsuwa", storageBucket: "video-tsuwa.firebasestorage.app", messagingSenderId: "595981788032", appId: "1:595981788032:web:319e20bd30142af82e5765"
         };
 
-        // Firebaseの初期化
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ランダムなIDを生成する関数 (8文字)
         function generateId(length = 8) {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let result = '';
@@ -39,13 +35,21 @@
             return result;
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const docId = urlParams.get('id');
+        // URLのパスからIDを抽出 (例: /repo-name/AbCd1234 の最後の部分を取得)
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        let docId = null;
+        if (pathSegments.length > 1) {
+            docId = pathSegments[pathSegments.length - 1];
+        } else if (pathSegments.length === 1 && pathSegments[0].length === 8) {
+            // 独自ドメインなどの場合
+            docId = pathSegments[0];
+        }
+
         const appDiv = document.getElementById('app');
 
         if (docId) {
             // ==========================================
-            // 【閲覧モード】 ?id=xxxx が指定されている場合
+            // 【閲覧モード】 /ID が指定されている場合
             // ==========================================
             async function fetchHtml() {
                 try {
@@ -54,7 +58,6 @@
 
                     if (docSnap.exists()) {
                         const htmlContent = docSnap.data().content;
-                        // 取得したHTMLをそのまま描画して表示
                         document.open();
                         document.write(htmlContent);
                         document.close();
@@ -77,11 +80,11 @@
 
         } else {
             // ==========================================
-            // 【作成モード】 URLにIDがない場合
+            // 【作成モード】 ルートにアクセスした場合
             // ==========================================
             appDiv.innerHTML = `
                 <h1 class="text-2xl font-bold mb-2 text-gray-800">HTML共有ツール</h1>
-                <p class="text-sm text-gray-600 mb-4">HTMLコードを入力してアップロードすると、誰でも閲覧できる専用URLが発行されます。</p>
+                <p class="text-sm text-gray-600 mb-4">HTMLコードを入力してアップロードすると、専用URL（/ID）が発行されます。</p>
                 
                 <textarea id="htmlInput" rows="12" class="w-full p-3 border rounded-lg font-mono text-sm mb-4 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="&lt;!DOCTYPE html&gt;&#10;&lt;html&gt;&#10;&lt;head&gt;&lt;title&gt;マイページ&lt;/title&gt;&lt;/head&gt;&#10;&lt;body&gt;&#10;  &lt;h1&gt;こんにちは！&lt;/h1&gt;&#10;&lt;/body&gt;&#10;&lt;/html&gt;"></textarea>
                 
@@ -110,28 +113,26 @@
                 try {
                     const newId = generateId(8);
                     
-                    // Firestoreの "html_pages" コレクションに保存
                     await setDoc(doc(db, "html_pages", newId), {
                         content: htmlContent,
                         createdAt: new Date().toISOString()
                     });
 
-                    // 現在のページURLベースに ?id=ID を付与
+                    // 共有URLを [ベースURL]/ID の形式で生成
                     const currentBaseUrl = window.location.origin + window.location.pathname.replace(/\/$/, "");
-                    const shareUrl = `${currentBaseUrl}/?id=${newId}`;
+                    const shareUrl = `${currentBaseUrl}/${newId}`;
 
                     document.getElementById('shareUrl').value = shareUrl;
                     document.getElementById('resultArea').classList.remove('hidden');
                     btn.textContent = 'アップロード完了！';
                 } catch (e) {
                     console.error(e);
-                    alert('アップロードに失敗しました。コンソールを確認してください。');
-                    btn.disabled = false;
+                    alert('アップロードに失敗しました。');
+                    btn.disabled.id = false;
                     btn.textContent = 'アップロードしてURLを発行';
                 }
             });
 
-            // コピーボタンの処理
             document.addEventListener('click', (e) => {
                 if (e.target && e.target.id === 'copyBtn') {
                     const copyInput = document.getElementById('shareUrl');
