@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocDrop - HTML共有ツール</title>
+    <title>DocDrop - HTML Share Tool</title>
+    <!-- Tailwind CSS (デザイン用) -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
 
+    <!-- ヘッダー -->
     <header class="w-full bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-xs">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 36" class="h-8">
             <defs>
@@ -23,17 +25,531 @@
             </g>
             <text x="32" y="26" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="20" fill="url(#logoGrad)" letter-spacing="-0.5">DocDrop</text>
         </svg>
-        <span class="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">HTML Share Tool</span>
+
+        <!-- 言語切り替えセレクター -->
+        <div class="flex items-center gap-3">
+            <select id="langSelector" class="text-xs font-semibold px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-xs">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+                <option value="zh">中文 (简体)</option>
+                <option value="ko">한국어</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="pt">Português</option>
+                <option value="it">Italiano</option>
+                <option value="ru">Русский</option>
+            </select>
+        </div>
     </header>
 
+    <!-- メインコンテンツ -->
     <main class="flex-grow w-full max-w-5xl mx-auto p-4 md:p-8 flex flex-col justify-center">
         <div id="app" class="w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <!-- 読み込み中の画面 -->
             <div class="text-center py-20">
                 <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent mb-4"></div>
-                <p class="text-sm text-gray-500">読み込み中...</p>
+                <p id="loadingText" class="text-sm text-gray-500">読み込み中...</p>
             </div>
         </div>
     </main>
+
+    <!-- フッター -->
+    <footer class="w-full py-6 text-center text-xs text-gray-400 border-t border-gray-200 bg-white">
+        POWERED BY <span class="font-bold text-gray-600">DocDrop</span>
+    </footer>
+
+    <!-- Firebase SDK (モジュール版 v10) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ==========================================
+        // ▼ ここにあなたのFirebase設定を貼り付けてください
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6OJINU59GDt3iXM48runxWBR-kHvz7MI",
+    authDomain: "video-tsuwa.firebaseapp.com",
+    databaseURL: "https://video-tsuwa-default-rtdb.firebaseio.com",
+    projectId: "video-tsuwa",
+    storageBucket: "video-tsuwa.firebasestorage.app",
+    messagingSenderId: "595981788032",
+    appId: "1:595981788032:web:319e20bd30142af82e5765"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ==========================================
+        // 10か国語の翻訳辞書データ
+        // ==========================================
+        const translations = {
+            ja: {
+                descTitle: "HTMLコードをドロップ・共有",
+                descText: "下のコードエディタにHTMLを入力してアップロードすると、専用URL（/ID）が即座に発行されます。",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>マイページ</title>\n</head>\n<body>\n    <h1>こんにちは！DocDropです</h1>\n</body>\n</html>",
+                pwdLabel: "パスワード保護（任意）",
+                pwdPlaceholder: "パスワードを設定したい場合のみ入力してください（空欄でもOK）",
+                uploadBtn: "アップロードしてURLを発行",
+                uploading: "アップロード中...",
+                successTitle: "🎉 共有用URLが発行されました！",
+                copyBtn: "コピー",
+                copied: "コピー完了！",
+                loading: "読み込み中...",
+                pwdRequiredTitle: "パスワード保護されています",
+                pwdRequiredDesc: "このページを閲覧するにはパスワードが必要です。",
+                pwdInputPlaceholder: "パスワードを入力",
+                unlockBtn: "ロックを解除",
+                pwdError: "パスワードが間違っています。",
+                notFoundTitle: "ページが見つかりません",
+                notFoundDesc: "指定されたIDのページは存在しないか、削除された可能性があります。",
+                backHome: "トップに戻る",
+                errorTitle: "エラーが発生しました",
+                errorDesc: "データの読み込みに失敗しました。",
+                previewMode: "プレビューモード",
+                createNew: "＋ 新しいHTMLを作成する"
+            },
+            en: {
+                descTitle: "Drop & Share HTML Code",
+                descText: "Enter your HTML code below and upload it to instantly generate a dedicated sharing URL (/ID).",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>My Page</title>\n</head>\n<body>\n    <h1>Hello from DocDrop!</h1>\n</body>\n</html>",
+                pwdLabel: "Password Protection (Optional)",
+                pwdPlaceholder: "Enter password only if you want to protect it (leave blank for public)",
+                uploadBtn: "Upload & Generate URL",
+                uploading: "Uploading...",
+                successTitle: "🎉 Share URL Generated!",
+                copyBtn: "Copy",
+                copied: "Copied!",
+                loading: "Loading...",
+                pwdRequiredTitle: "Password Protected",
+                pwdRequiredDesc: "A password is required to view this page.",
+                pwdInputPlaceholder: "Enter password",
+                unlockBtn: "Unlock",
+                pwdError: "Incorrect password.",
+                notFoundTitle: "Page Not Found",
+                notFoundDesc: "The page with the specified ID does not exist or may have been deleted.",
+                backHome: "Back to Home",
+                errorTitle: "An Error Occurred",
+                errorDesc: "Failed to load data.",
+                previewMode: "Preview Mode",
+                createNew: "＋ Create New HTML"
+            },
+            zh: {
+                descTitle: "投放与分享 HTML 代码",
+                descText: "在下方代码编辑器中输入 HTML 并上传，即可立即生成专属分享链接 (/ID)。",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>我的主页</title>\n</head>\n<body>\n    <h1>你好来自 DocDrop！</h1>\n</body>\n</html>",
+                pwdLabel: "密码保护（可选）",
+                pwdPlaceholder: "仅在需要密码保护时输入（留空则公开）",
+                uploadBtn: "上传并生成链接",
+                uploading: "上传中...",
+                successTitle: "🎉 分享链接已生成！",
+                copyBtn: "复制",
+                copied: "已复制！",
+                loading: "加载中...",
+                pwdRequiredTitle: "受密码保护",
+                pwdRequiredDesc: "查看此页面需要密码。",
+                pwdInputPlaceholder: "请输入密码",
+                unlockBtn: "解锁",
+                pwdError: "密码错误。",
+                notFoundTitle: "页面未找到",
+                notFoundDesc: "指定的 ID 页面不存在或已被删除。",
+                backHome: "返回首页",
+                errorTitle: "发生错误",
+                errorDesc: "加载数据失败。",
+                previewMode: "预览模式",
+                createNew: "＋ 创建新 HTML"
+            },
+            ko: {
+                descTitle: "HTML 코드 드롭 및 공유",
+                descText: "아래 코드 편집기에 HTML을 입력하고 업로드하면 전용 공유 URL(/ID)이 즉시 생성됩니다.",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>마이 페이지</title>\n</head>\n<body>\n    <h1>DocDrop에 오신 것을 환영합니다!</h1>\n</body>\n</html>",
+                pwdLabel: "비밀번호 보호 (선택사항)",
+                pwdPlaceholder: "보호하려는 경우에만 입력하세요 (공백 시 공개)",
+                uploadBtn: "업로드 및 URL 생성",
+                uploading: "업로드 중...",
+                successTitle: "🎉 공유 URL이 생성되었습니다!",
+                copyBtn: "복사",
+                copied: "복사됨!",
+                loading: "로딩 중...",
+                pwdRequiredTitle: "비밀번호 보호됨",
+                pwdRequiredDesc: "이 페이지를 보려면 비밀번호가 필요합니다.",
+                pwdInputPlaceholder: "비밀번호 입력",
+                unlockBtn: "잠금 해제",
+                pwdError: "비밀번호가 틀렸습니다.",
+                notFoundTitle: "페이지를 찾을 수 없음",
+                notFoundDesc: "지정된 ID의 페이지가 존재하지 않거나 삭제되었을 수 있습니다.",
+                backHome: "홈으로 돌아가기",
+                errorTitle: "오류 발생",
+                errorDesc: "데이터를 로드하지 못했습니다.",
+                previewMode: "미리보기 모드",
+                createNew: "＋ 새 HTML 만들기"
+            },
+            es: {
+                descTitle: "Comparte tu código HTML",
+                descText: "Introduce tu código HTML a continuación y súbelo para generar al instante una URL de compartición (/ID).",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>Mi Página</title>\n</head>\n<body>\n    <h1>¡Hola desde DocDrop!</h1>\n</body>\n</html>",
+                pwdLabel: "Protección por contraseña (Opcional)",
+                pwdPlaceholder: "Ingresa contraseña solo si deseas protegerlo (déjalo en blanco)",
+                uploadBtn: "Subir y generar URL",
+                uploading: "Subiendo...",
+                successTitle: "¡URL de compartición generada!",
+                copyBtn: "Copiar",
+                copied: "¡Copiado!",
+                loading: "Cargando...",
+                pwdRequiredTitle: "Protegido por contraseña",
+                pwdRequiredDesc: "Se requiere contraseña para ver esta página.",
+                pwdInputPlaceholder: "Ingresar contraseña",
+                unlockBtn: "Desbloquear",
+                pwdError: "Contraseña incorrecta.",
+                notFoundTitle: "Página no encontrada",
+                notFoundDesc: "La página con el ID especificado no existe o ha sido eliminada.",
+                backHome: "Volver al inicio",
+                errorTitle: "Ocurrió un error",
+                errorDesc: "No se pudieron cargar los datos.",
+                previewMode: "Modo Vista Previa",
+                createNew: "＋ Crear nuevo HTML"
+            },
+            fr: {
+                descTitle: "Partagez votre code HTML",
+                descText: "Saisissez votre code HTML ci-dessous et téléchargez-le pour générer instantanément une URL de partage (/ID).",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>Ma Page</title>\n</head>\n<body>\n    <h1>Bonjour de DocDrop !</h1>\n</body>\n</html>",
+                pwdLabel: "Protection par mot de passe (Facultatif)",
+                pwdPlaceholder: "Entrez un mot de passe pour le protéger (laisser vide si public)",
+                uploadBtn: "Télécharger et générer l'URL",
+                uploading: "Téléchargement...",
+                successTitle: "🎉 URL de partage générée !",
+                copyBtn: "Copier",
+                copied: "Copié !",
+                loading: "Chargement...",
+                pwdRequiredTitle: "Protégé par mot de passe",
+                pwdRequiredDesc: "Un mot de passe est requis pour afficher cette page.",
+                pwdInputPlaceholder: "Entrer le mot de passe",
+                unlockBtn: "Déverrouiller",
+                pwdError: "Mot de passe incorrect.",
+                notFoundTitle: "Page non trouvée",
+                notFoundDesc: "La page spécifiée n'existe pas ou a peut-être été supprimée.",
+                backHome: "Retour à l'accueil",
+                errorTitle: "Une erreur est survenue",
+                errorDesc: "Échec du chargement des données.",
+                previewMode: "Mode Aperçu",
+                createNew: "＋ Créer un nouveau HTML"
+            },
+            de: {
+                descTitle: "HTML-Code teilen",
+                descText: "Geben Sie unten Ihren HTML-Code ein und laden Sie ihn hoch, um sofort eine Freigabe-URL (/ID) zu generieren.",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>Meine Seite</title>\n</head>\n<body>\n    <h1>Hallo von DocDrop!</h1>\n</body>\n</html>",
+                pwdLabel: "Passwortschutz (Optional)",
+                pwdPlaceholder: "Nur eingeben, wenn Sie die Seite schützen möchten (leer lassen für öffentlich)",
+                uploadBtn: "Hochladen & URL generieren",
+                uploading: "Wird hochgeladen...",
+                successTitle: "🎉 Freigabe-URL generiert!",
+                copyBtn: "Kopieren",
+                copied: "Kopiert!",
+                loading: "Wird geladen...",
+                pwdRequiredTitle: "Passwortgeschützt",
+                pwdRequiredDesc: "Für diese Seite ist ein Passwort erforderlich.",
+                pwdInputPlaceholder: "Passwort eingeben",
+                unlockBtn: "Entsperren",
+                pwdError: "Falsches Passwort.",
+                notFoundTitle: "Seite nicht gefunden",
+                notFoundDesc: "Die angegebene ID existiert nicht oder wurde gelöscht.",
+                backHome: "Zur Startseite",
+                errorTitle: "Ein Fehler ist aufgetreten",
+                errorDesc: "Daten konnten nicht geladen werden.",
+                previewMode: "Vorschaumodus",
+                createNew: "＋ Neues HTML erstellen"
+            },
+            pt: {
+                descTitle: "Compartilhe seu código HTML",
+                descText: "Insira seu código HTML abaixo e envie para gerar instantaneamente uma URL de compartilhamento (/ID).",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>Minha Página</title>\n</head>\n<body>\n    <h1>Olá do DocDrop!</h1>\n</body>\n</html>",
+                pwdLabel: "Proteção por senha (Opcional)",
+                pwdPlaceholder: "Insira apenas se desejar proteger (deixe em branco para público)",
+                uploadBtn: "Enviar e Gerar URL",
+                uploading: "Enviando...",
+                successTitle: "🎉 URL de compartilhamento gerada!",
+                copyBtn: "Copiar",
+                copied: "Copiado!",
+                loading: "Carregando...",
+                pwdRequiredTitle: "Protegido por senha",
+                pwdRequiredDesc: "É necessária uma senha para visualizar esta página.",
+                pwdInputPlaceholder: "Digite a senha",
+                unlockBtn: "Desbloquear",
+                pwdError: "Senha incorreta.",
+                notFoundTitle: "Página não encontrada",
+                notFoundDesc: "A página com o ID especificado não existe ou pode ter sido excluída.",
+                backHome: "Voltar ao início",
+                errorTitle: "Ocorreu um erro",
+                errorDesc: "Falha ao carregar os dados.",
+                previewMode: "Modo de Visualização",
+                createNew: "＋ Criar Novo HTML"
+            },
+            it: {
+                descTitle: "Condividi il tuo codice HTML",
+                descText: "Inserisci il tuo codice HTML qui sotto e caricalo per generare subito un URL di condivisione (/ID).",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>La mia pagina</title>\n</head>\n<body>\n    <h1>Ciao da DocDrop!</h1>\n</body>\n</html>",
+                pwdLabel: "Protezione password (Opzionale)",
+                pwdPlaceholder: "Inserisci solo se desideri proteggerla (lascia vuoto se pubblico)",
+                uploadBtn: "Carica e genera URL",
+                uploading: "Caricamento...",
+                successTitle: "🎉 URL di condivisione generato!",
+                copyBtn: "Copia",
+                copied: "Copiato!",
+                loading: "Caricamento...",
+                pwdRequiredTitle: "Protetto da password",
+                pwdRequiredDesc: "È richiesta una password per visualizzare questa pagina.",
+                pwdInputPlaceholder: "Inserisci password",
+                unlockBtn: "Sblocca",
+                pwdError: "Password errata.",
+                notFoundTitle: "Pagina non trovata",
+                notFoundDesc: "La pagina specificata non esiste o potrebbe essere stata eliminata.",
+                backHome: "Torna alla Home",
+                errorTitle: "Si è verificato un errore",
+                errorDesc: "Impossibile caricare i dati.",
+                previewMode: "Modalità Anteprima",
+                createNew: "＋ Crea nuovo HTML"
+            },
+            ru: {
+                descTitle: "Загрузить и поделиться HTML",
+                descText: "Введите ваш HTML-код ниже и загрузите его, чтобы мгновенно создать ссылку для общего доступа (/ID).",
+                placeholder: "<!DOCTYPE html>\n<html>\n<head>\n    <title>Моя страница</title>\n</head>\n<body>\n    <h1>Привет от DocDrop!</h1>\n</body>\n</html>",
+                pwdLabel: "Защита паролем (Необязательно)",
+                pwdPlaceholder: "Введите пароль только при необходимости (оставьте пустым)",
+                uploadBtn: "Загрузить и создать URL",
+                uploading: "Загрузка...",
+                successTitle: "🎉 Ссылка создана!",
+                copyBtn: "Копировать",
+                copied: "Скопировано!",
+                loading: "Загрузка...",
+                pwdRequiredTitle: "Защищено паролем",
+                pwdRequiredDesc: "Для просмотра этой страницы требуется пароль.",
+                pwdInputPlaceholder: "Введите пароль",
+                unlockBtn: "Разблокировать",
+                pwdError: "Неверный пароль.",
+                notFoundTitle: "Страница не найдена",
+                notFoundDesc: "Страница с указанным ID не существует или была удалена.",
+                backHome: "На главную",
+                errorTitle: "Произошла ошибка",
+                errorDesc: "Не удалось загрузить данные.",
+                previewMode: "Режим предварительного просмотра",
+                createNew: "＋ Создать новый HTML"
+            }
+        };
+
+        // 現在の言語を取得（保存された設定またはデフォルト日本語）
+        let currentLang = localStorage.getItem('docdrop_lang') || 'ja';
+        const langSelector = document.getElementById('langSelector');
+        langSelector.value = currentLang;
+
+        function t(key) {
+            return translations[currentLang][key] || translations['ja'][key] || key;
+        }
+
+        // ==========================================
+        // アプリケーションの状態保持変数
+        // ==========================================
+        let globalDocId = null;
+        let globalHtmlContent = "";
+        let globalPassword = "";
+        let isCreateMode = false;
+
+        function generateId(length = 8) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        let docId = null;
+        if (pathSegments.length > 1) {
+            docId = pathSegments[pathSegments.length - 1];
+        } else if (pathSegments.length === 1 && pathSegments[0].length === 8) {
+            docId = pathSegments[0];
+        }
+
+        const appDiv = document.getElementById('app');
+        document.getElementById('loadingText').textContent = t('loading');
+
+        // 画面を再描画する関数
+        function renderUI() {
+            if (docId && !isCreateMode) {
+                // 閲覧モード中
+                renderPreviewOrPassword();
+            } else {
+                // 作成モード中
+                renderCreateMode();
+            }
+        }
+
+        function renderPreviewOrPassword() {
+            if (globalPassword) {
+                appDiv.innerHTML = `
+                    <div class="text-center py-12 max-w-md mx-auto">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl shadow-inner border border-blue-100">🔒</div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-1">${t('pwdRequiredTitle')}</h2>
+                        <p class="text-xs text-gray-500 mb-6">${t('pwdRequiredDesc')}</p>
+                        
+                        <input type="password" id="accessPassword" placeholder="${t('pwdInputPlaceholder')}" class="w-full p-3 border border-gray-300 rounded-xl text-sm mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center shadow-inner bg-gray-50/50">
+                        <button id="authBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 rounded-xl text-sm hover:opacity-95 transition shadow-sm">${t('unlockBtn')}</button>
+                        <p id="errorMsg" class="text-xs text-red-500 mt-2.5 hidden font-medium">${t('pwdError')}</p>
+                    </div>
+                `;
+
+                const handleAuth = () => {
+                    const inputVal = document.getElementById('accessPassword').value;
+                    if (inputVal === globalPassword) {
+                        renderIframe(globalHtmlContent, docId);
+                    } else {
+                        document.getElementById('errorMsg').classList.remove('hidden');
+                    }
+                };
+
+                document.getElementById('authBtn').addEventListener('click', handleAuth);
+                document.getElementById('accessPassword').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleAuth();
+                });
+            } else {
+                renderIframe(globalHtmlContent, docId);
+            }
+        }
+
+        function renderIframe(htmlContent, currentDocId) {
+            appDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">${t('previewMode')} (ID: ${currentDocId})</span>
+                    <a href="./" class="text-xs font-semibold text-blue-600 hover:underline">${t('createNew')}</a>
+                </div>
+                <div class="w-full h-[70vh] border border-gray-300 rounded-xl overflow-hidden bg-white shadow-inner">
+                    <iframe id="previewFrame" class="w-full h-full border-0"></iframe>
+                </div>
+            `;
+            const iframe = document.getElementById('previewFrame');
+            iframe.srcdoc = htmlContent;
+        }
+
+        function renderCreateMode() {
+            appDiv.innerHTML = `
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-1">${t('descTitle')}</h2>
+                    <p class="text-sm text-gray-500">${t('descText')}</p>
+                </div>
+                
+                <textarea id="htmlInput" rows="12" class="w-full p-4 border border-gray-300 rounded-xl font-mono text-sm mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-gray-50/50 shadow-inner" placeholder="${t('placeholder')}"></textarea>
+                
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">${t('pwdLabel')}</label>
+                    <input type="password" id="passwordInput" placeholder="${t('pwdPlaceholder')}" class="w-full p-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50/50">
+                </div>
+
+                <button id="uploadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3.5 px-6 rounded-xl hover:opacity-95 transition shadow-md text-base">${t('uploadBtn')}</button>
+                
+                <div id="resultArea" class="mt-8 hidden p-5 bg-blue-50/60 border border-blue-100 rounded-xl">
+                    <p class="text-sm font-bold text-blue-900 mb-2">${t('successTitle')}</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="shareUrl" readonly class="w-full p-3 border border-blue-200 rounded-lg bg-white text-sm select-all text-gray-700 shadow-inner">
+                        <button id="copyBtn" class="bg-blue-600 text-white px-5 py-3 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shrink-0 shadow-sm">${t('copyBtn')}</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('uploadBtn').addEventListener('click', async () => {
+                const htmlContent = document.getElementById('htmlInput').value;
+                const password = document.getElementById('passwordInput').value.trim();
+
+                if (!htmlContent.trim()) {
+                    alert('Please enter HTML code.');
+                    return;
+                }
+
+                const btn = document.getElementById('uploadBtn');
+                btn.disabled = true;
+                btn.textContent = t('uploading');
+
+                try {
+                    const newId = generateId(8);
+                    
+                    await setDoc(doc(db, "html_pages", newId), {
+                        content: htmlContent,
+                        password: password || "",
+                        createdAt: new Date().toISOString()
+                    });
+
+                    const currentBaseUrl = window.location.origin + window.location.pathname.replace(/\/$/, "");
+                    const shareUrl = `${currentBaseUrl}/${newId}`;
+
+                    document.getElementById('shareUrl').value = shareUrl;
+                    document.getElementById('resultArea').classList.remove('hidden');
+                    btn.textContent = 'OK!';
+                } catch (e) {
+                    console.error(e);
+                    alert('Upload failed.');
+                    btn.disabled = false;
+                    btn.textContent = t('uploadBtn');
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (e.target && e.target.id === 'copyBtn') {
+                    const copyInput = document.getElementById('shareUrl');
+                    copyInput.select();
+                    navigator.clipboard.writeText(copyInput.value);
+                    e.target.textContent = t('copied');
+                    setTimeout(() => { e.target.textContent = t('copyBtn'); }, 2000);
+                }
+            });
+        }
+
+        // データの初期ロード
+        async function initApp() {
+            if (docId) {
+                try {
+                    const docRef = doc(db, "html_pages", docId);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        globalHtmlContent = data.content;
+                        globalPassword = data.password || "";
+                        globalDocId = docId;
+                        renderUI();
+                    } else {
+                        appDiv.innerHTML = `
+                            <div class="text-center py-12">
+                                <h1 class="text-2xl font-bold text-red-500 mb-3">${t('notFoundTitle')}</h1>
+                                <p class="text-gray-600 mb-6 text-sm">${t('notFoundDesc')}</p>
+                                <a href="./" class="inline-block bg-blue-600 text-white font-medium px-6 py-2.5 rounded-lg text-sm hover:bg-blue-700 transition">${t('backHome')}</a>
+                            </div>
+                        `;
+                    }
+                } catch (e) {
+                    console.error(e);
+                    appDiv.innerHTML = `
+                        <div class="text-center py-12">
+                            <h1 class="text-2xl font-bold text-red-500 mb-3">${t('errorTitle')}</h1>
+                            <p class="text-gray-600 text-sm">${t('errorDesc')}</p>
+                            <a href="./" class="mt-4 inline-block text-blue-600 text-sm underline">${t('backHome')}</a>
+                        </div>
+                    `;
+                }
+            } else {
+                renderUI();
+            }
+        }
+
+        // 言語変更時の処理
+        langSelector.addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            localStorage.setItem('docdrop_lang', currentLang);
+            renderUI();
+        });
+
+        initApp();
+    </script>
+</body>
+</html>
 
     <footer class="w-full py-6 text-center text-xs text-gray-400 border-t border-gray-200 bg-white">
         POWERED BY <span class="font-bold text-gray-600">DocDrop</span>
