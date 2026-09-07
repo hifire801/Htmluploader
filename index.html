@@ -4,38 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocDrop - HTML共有ツール</title>
-    <!-- Tailwind CSS (デザイン用) -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-gray-50 min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
 
-    <div id="app" class="w-full max-w-2xl bg-white rounded-xl shadow-md p-6">
-        <!-- 読み込み中の画面 -->
-        <div class="text-center py-10">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mb-3"></div>
-            <p class="text-sm text-gray-500 mb-6">読み込み中...</p>
-            <div class="flex items-center justify-center gap-2">
-                <span class="text-xs text-gray-400 tracking-wider">POWERED BY</span>
-                <!-- SVGロゴ -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 36" class="h-6">
-                    <defs>
-                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#2563eb" />
-                            <stop offset="100%" stop-color="#4f46e5" />
-                        </linearGradient>
-                    </defs>
-                    <g transform="translate(2, 2)">
-                        <path d="M5 2h12l5 5v23a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="url(#logoGrad)" />
-                        <path d="M17 2l5 5h-3a2 2 0 0 1-2-2V2z" fill="#93c5fd" opacity="0.6" />
-                        <path d="M11 15c-1.8 2.2-2.5 3.5-2.5 4.5a2.5 2.5 0 0 0 5 0c0-1-.7-2.3-2.5-4.5z" fill="#ffffff" />
-                    </g>
-                    <text x="34" y="25" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="19" fill="url(#logoGrad)" letter-spacing="-0.5">DocDrop</text>
-                </svg>
+    <header class="w-full bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-xs">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 36" class="h-8">
+            <defs>
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#2563eb" />
+                    <stop offset="100%" stop-color="#4f46e5" />
+                </linearGradient>
+            </defs>
+            <g transform="translate(0, 1)">
+                <path d="M4 2h10l4 4v24a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="url(#logoGrad)" />
+                <path d="M14 2l4 4h-2a2 2 0 0 1-2-2V2z" fill="#93c5fd" opacity="0.6" />
+                <path d="M9 15c-1.5 2-2.2 3.2-2.2 4.1a2.2 2.2 0 0 0 4.4 0c0-.9-.7-2.1-2.2-4.1z" fill="#ffffff" />
+            </g>
+            <text x="32" y="26" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="20" fill="url(#logoGrad)" letter-spacing="-0.5">DocDrop</text>
+        </svg>
+        <span class="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">HTML Share Tool</span>
+    </header>
+
+    <main class="flex-grow w-full max-w-5xl mx-auto p-4 md:p-8 flex flex-col justify-center">
+        <div id="app" class="w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+            <div class="text-center py-20">
+                <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent mb-4"></div>
+                <p class="text-sm text-gray-500">読み込み中...</p>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Firebase SDK (モジュール版 v10) -->
+    <footer class="w-full py-6 text-center text-xs text-gray-400 border-t border-gray-200 bg-white">
+        POWERED BY <span class="font-bold text-gray-600">DocDrop</span>
+    </footer>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -56,24 +59,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 共通のSVGロゴテンプレート
-        const svgLogoHtml = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 36" class="h-7 inline-block align-middle">
-                <defs>
-                    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#2563eb" />
-                        <stop offset="100%" stop-color="#4f46e5" />
-                    </linearGradient>
-                </defs>
-                <g transform="translate(2, 2)">
-                    <path d="M5 2h12l5 5v23a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="url(#logoGrad)" />
-                    <path d="M17 2l5 5h-3a2 2 0 0 1-2-2V2z" fill="#93c5fd" opacity="0.6" />
-                    <path d="M11 15c-1.8 2.2-2.5 3.5-2.5 4.5a2.5 2.5 0 0 0 5 0c0-1-.7-2.3-2.5-4.5z" fill="#ffffff" />
-                </g>
-                <text x="34" y="25" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="19" fill="url(#logoGrad)" letter-spacing="-0.5">DocDrop</text>
-            </svg>
-        `;
-
         function generateId(length = 8) {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let result = '';
@@ -93,9 +78,24 @@
 
         const appDiv = document.getElementById('app');
 
+        // iframeプレビューを描画する共通関数
+        function renderIframe(htmlContent, currentDocId) {
+            appDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">プレビューモード (ID: ${currentDocId})</span>
+                    <a href="./" class="text-xs font-semibold text-blue-600 hover:underline">＋ 新しいHTMLを作成する</a>
+                </div>
+                <div class="w-full h-[70vh] border border-gray-300 rounded-xl overflow-hidden bg-white shadow-inner">
+                    <iframe id="previewFrame" class="w-full h-full border-0"></iframe>
+                </div>
+            `;
+            const iframe = document.getElementById('previewFrame');
+            iframe.srcdoc = htmlContent;
+        }
+
         if (docId) {
             // ==========================================
-            // 【閲覧モード】 /ID が指定されている場合
+            // 【閲覧モード】
             // ==========================================
             async function fetchHtml() {
                 try {
@@ -103,114 +103,52 @@
                     const docSnap = await getDoc(docRef);
 
                     if (docSnap.exists()) {
-                        const htmlContent = docSnap.data().content;
-                        document.open();
-                        document.write(htmlContent);
-                        document.close();
+                        const data = docSnap.data();
+                        const htmlContent = data.content;
+                        const savedPassword = data.password || "";
+
+                        // パスワードが設定されている場合
+                        if (savedPassword) {
+                            appDiv.innerHTML = `
+                                <div class="text-center py-12 max-w-md mx-auto">
+                                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl shadow-inner border border-blue-100">🔒</div>
+                                    <h2 class="text-xl font-bold text-gray-800 mb-1">パスワード保護されています</h2>
+                                    <p class="text-xs text-gray-500 mb-6">このページを閲覧するにはパスワードが必要です。</p>
+                                    
+                                    <input type="password" id="accessPassword" placeholder="パスワードを入力" class="w-full p-3 border border-gray-300 rounded-xl text-sm mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center shadow-inner bg-gray-50/50">
+                                    <button id="authBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 rounded-xl text-sm hover:opacity-95 transition shadow-sm">ロックを解除</button>
+                                    <p id="errorMsg" class="text-xs text-red-500 mt-2.5 hidden font-medium">パスワードが間違っています。</p>
+                                </div>
+                            `;
+
+                            const handleAuth = () => {
+                                const inputVal = document.getElementById('accessPassword').value;
+                                if (inputVal === savedPassword) {
+                                    renderIframe(htmlContent, docId);
+                                } else {
+                                    document.getElementById('errorMsg').classList.remove('hidden');
+                                }
+                            };
+
+                            document.getElementById('authBtn').addEventListener('click', handleAuth);
+                            document.getElementById('accessPassword').addEventListener('keypress', (e) => {
+                                if (e.key === 'Enter') handleAuth();
+                            });
+                        } else {
+                            // パスワードなし（そのまま表示）
+                            renderIframe(htmlContent, docId);
+                        }
+
                     } else {
                         appDiv.innerHTML = `
-                            <div class="text-center py-6">
-                                <h1 class="text-xl font-bold text-red-500 mb-2">ページが見つかりません</h1>
-                                <p class="text-gray-600 mb-4 text-sm">指定されたIDのページは存在しないか、削除された可能性があります。</p>
-                                <a href="./" class="text-blue-600 underline font-medium text-sm">トップに戻る</a>
-                                <div class="mt-8 flex items-center justify-center gap-2">
-                                    <span class="text-xs text-gray-400">POWERED BY</span>
-                                    ${svgLogoHtml}
-                                </div>
+                            <div class="text-center py-12">
+                                <h1 class="text-2xl font-bold text-red-500 mb-3">ページが見つかりません</h1>
+                                <p class="text-gray-600 mb-6 text-sm">指定されたIDのページは存在しないか、削除された可能性があります。</p>
+                                <a href="./" class="inline-block bg-blue-600 text-white font-medium px-6 py-2.5 rounded-lg text-sm hover:bg-blue-700 transition">トップに戻る</a>
                             </div>
                         `;
                     }
                 } catch (e) {
                     console.error(e);
                     appDiv.innerHTML = `
-                        <div class="text-center py-6">
-                            <h1 class="text-xl font-bold text-red-500 mb-2">エラーが発生しました</h1>
-                            <p class="text-gray-600 text-sm">データの読み込みに失敗しました。</p>
-                            <div class="mt-8 flex items-center justify-center gap-2">
-                                <span class="text-xs text-gray-400">POWERED BY</span>
-                                ${svgLogoHtml}
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-            fetchHtml();
-
-        } else {
-            // ==========================================
-            // 【作成モード】 ルートにアクセスした場合
-            // ==========================================
-            appDiv.innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <div>${svgLogoHtml}</div>
-                    <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full">HTML Share Tool</span>
-                </div>
-                <p class="text-sm text-gray-600 mb-4">HTMLコードを入力してアップロードすると、誰でも閲覧できる専用URL（/ID）が発行されます。</p>
-                
-                <textarea id="htmlInput" rows="12" class="w-full p-3 border rounded-lg font-mono text-sm mb-4 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="&lt;!DOCTYPE html&gt;&#10;&lt;html&gt;&#10;&lt;head&gt;&lt;title&gt;マイページ&lt;/title&gt;&lt;/head&gt;&#10;&lt;body&gt;&#10;  &lt;h1&gt;こんにちは！&lt;/h1&gt;&#10;&lt;/body&gt;&#10;&lt;/html&gt;"></textarea>
-                
-                <button id="uploadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:opacity-90 transition shadow-sm">アップロードしてURLを発行</button>
-                
-                <div id="resultArea" class="mt-6 hidden">
-                    <p class="text-sm font-semibold text-gray-700 mb-1">共有用URL:</p>
-                    <div class="flex gap-2">
-                        <input type="text" id="shareUrl" readonly class="w-full p-2 border rounded bg-gray-100 text-sm select-all">
-                        <button id="copyBtn" class="bg-gray-200 px-4 py-2 rounded text-sm font-medium hover:bg-gray-300 transition">コピー</button>
-                    </div>
-                </div>
-
-                <!-- フッター部分のロゴ -->
-                <div class="mt-8 text-center">
-                    <div class="inline-flex items-center gap-2">
-                        <span class="text-xs text-gray-400 tracking-wider">POWERED BY</span>
-                        ${svgLogoHtml}
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('uploadBtn').addEventListener('click', async () => {
-                const htmlContent = document.getElementById('htmlInput').value;
-                if (!htmlContent.trim()) {
-                    alert('HTMLコードを入力してください。');
-                    return;
-                }
-
-                const btn = document.getElementById('uploadBtn');
-                btn.disabled = true;
-                btn.textContent = 'アップロード中...';
-
-                try {
-                    const newId = generateId(8);
-                    
-                    await setDoc(doc(db, "html_pages", newId), {
-                        content: htmlContent,
-                        createdAt: new Date().toISOString()
-                    });
-
-                    const currentBaseUrl = window.location.origin + window.location.pathname.replace(/\/$/, "");
-                    const shareUrl = `${currentBaseUrl}/${newId}`;
-
-                    document.getElementById('shareUrl').value = shareUrl;
-                    document.getElementById('resultArea').classList.remove('hidden');
-                    btn.textContent = 'アップロード完了！';
-                } catch (e) {
-                    console.error(e);
-                    alert('アップロードに失敗しました。');
-                    btn.disabled = false;
-                    btn.textContent = 'アップロードしてURLを発行';
-                }
-            });
-
-            document.addEventListener('click', (e) => {
-                if (e.target && e.target.id === 'copyBtn') {
-                    const copyInput = document.getElementById('shareUrl');
-                    copyInput.select();
-                    navigator.clipboard.writeText(copyInput.value);
-                    e.target.textContent = 'コピー完了！';
-                    setTimeout(() => { e.target.textContent = 'コピー'; }, 2000);
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+                        <div class="text
